@@ -14,186 +14,224 @@
 class TypeStores {
     constructor() {
 //        this._types = [BooleanTypeStore, IntegerTypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
-        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore].map(t=>new t());
+        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
+        this._typeObjs = Object.freeze(this._types.reduce((o,t,i)=>Object.assign(o,{[t.name]:t}), {}));
+        this._typeInss = Object.freeze(this._types.map(t=>new t()));
     }
-    get types() {return this._types}
-    fromName(typeName) {return this._types.find(t=>t.name.match(typeName))}
-    fromText(textValue) {return this._types.find(t=>t.text.match(textValue))}
-    fromValue(typedValue) {return this._types.find(t=>t.typed.match(typedValue))}
+    get typeNames() {return this._types.map(t=>t.name)}
+    get typeClss() {return this._types}
+    get typeCls() {return this._typeObjs}
+    //get typeNames() {return this._types.map(ins=>ins.constructor.name)}
+    get typeInss() {return this._typeInss}
+//    fromName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))}
+//    fromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))}
+//    fromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))}
+    getClsFomName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))?.constructor}
+    getClsFromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))?.constructor}
+    getClsFromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))?.constructor}
+    getInsFomName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))}
+    getInsFromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))}
+    getInsFromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))}
 //    getFromTypeName(typeName) {return this._types.find(t=>t.name.match(typeName))}
 //    getFromTextValue(textValue) {return this._types.find(t=>t.text.match(textValue))}
 //    getFromTypedValue(typedValue) {return this._types.find(t=>t.typed.match(typedValue))}
 }
 class TypeStore {
-    constructor() {
-        this._name = new TypeName();
-        this._text = new TextValue();
-        this._typed = new TypedValue();
-    }
-}
-class AnyTypeStore {
-    constructor() {
-        this._name = new AnyTypeName();
-        this._text = new AnyTextValue();
-        this._typed = new AnyTypedValue();
-    }
-    get name() {return this._name}
-    get text() {return this._text}
-    get typed() {return this._typed}
-}
-class StringTypeStore {
-    constructor() {
-        this._name = new StringTypeName();
-        this._text = new StringTextValue();
-        this._typed = new StringTypedValue();
+    constructor(name, text, typed) {
+        if (!(name instanceof TypeName)){throw new TypeError(`第一引数nameはTypeNameのインスタンスであるべきです。`)}
+        if (!(text instanceof TextValue)){throw new TypeError(`第二引数textはTextValueのインスタンスであるべきです。`)}
+        if (!(typed instanceof TypedValue)){throw new TypeError(`第三引数typedはTypedValueのインスタンスであるべきです。`)}
+        this._name = name;
+        this._text = text;
+        this._typed = typed;
+//        this._name = new TypeName();
+//        this._text = new TextValue();
+//        this._typed = new TypedValue();
     }
     get name() {return this._name}
     get text() {return this._text}
     get typed() {return this._typed}
 }
-class BooleanTypeStore {
+class AnyTypeStore extends TypeStore {
     constructor() {
-        this._name = new BooleanTypeName();
-        this._text = new BooleanTextValue();
-        this._typed = new BooleanTypedValue();
+        super(new AnyTypeName(), new AnyTextValue(), new AnyTypedValue());
+//        this._name = new AnyTypeName();
+//        this._text = new AnyTextValue();
+//        this._typed = new AnyTypedValue();
     }
 }
-class NumberTypeStore {
+class StringTypeStore extends TypeStore {
     constructor() {
-        this._name = new NumberTypeName();
-        this._text = new NumberTextValue();
-        this._typed = new NumberTypedValue();
+        super(new StringTypeName(), new StringTextValue(), new StringTypedValue());
+//        this._name = new StringTypeName();
+//        this._text = new StringTextValue();
+//        this._typed = new StringTypedValue();
     }
     get name() {return this._name}
     get text() {return this._text}
     get typed() {return this._typed}
 }
-class IntegerTypeStore {
+class BooleanTypeStore extends TypeStore {
     constructor() {
-        this._name = new IntegerTypeName();
-        this._text = new IntegerTextValue();
-        this._typed = new IntegerTypedValue();
+        super(new BooleanTypeName(), new BooleanTextValue(), new BooleanTypedValue());
+//        this._name = new BooleanTypeName();
+//        this._text = new BooleanTextValue();
+//        this._typed = new BooleanTypedValue();
     }
 }
-class Integer2TypeStore {
+class NumberTypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer2TypeName();
-        this._text = new Integer2TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new NumberTypeName(), new NumberTextValue(), new NumberTypedValue());
+//        this._name = new NumberTypeName();
+//        this._text = new NumberTextValue();
+//        this._typed = new NumberTypedValue();
+    }
+//    get name() {return this._name}
+//    get text() {return this._text}
+//    get typed() {return this._typed}
+}
+class IntegerTypeStore extends TypeStore {
+    constructor() {
+        super(new IntegerTypeName(), new IntegerTextValue(), new IntegerTypedValue());
+//        this._name = new IntegerTypeName();
+//        this._text = new IntegerTextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class Integer8TypeStore {
+class Integer2TypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer8TypeName();
-        this._text = new Integer8TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new Integer2TypeName(), new Integer2TextValue(), new IntegerTypedValue());
+//        this._name = new Integer2TypeName();
+//        this._text = new Integer2TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class Integer16TypeStore {
+class Integer8TypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer16TypeName();
-        this._text = new Integer16TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new Integer8TypeName(), new Integer8TextValue(), new IntegerTypedValue());
+//        this._name = new Integer8TypeName();
+//        this._text = new Integer8TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class Integer32TypeStore {
+class Integer16TypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer32TypeName();
-        this._text = new Integer32TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new Integer16TypeName(), new Integer16TextValue(), new IntegerTypedValue());
+//        this._name = new Integer16TypeName();
+//        this._text = new Integer16TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class Integer36TypeStore {
+class Integer32TypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer36TypeName();
-        this._text = new Integer36TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new Integer32TypeName(), new Integer32TextValue(), new IntegerTypedValue());
+//        this._name = new Integer32TypeName();
+//        this._text = new Integer32TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class Integer64TypeStore {
+class Integer36TypeStore extends TypeStore {
     constructor() {
-        this._name = new Integer64TypeName();
-        this._text = new Integer64TextValue();
-        this._typed = new IntegerTypedValue();
+        super(new Integer36TypeName(), new Integer36TextValue(), new IntegerTypedValue());
+//        this._name = new Integer36TypeName();
+//        this._text = new Integer36TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class FloatTypeStore {
+class Integer64TypeStore extends TypeStore {
     constructor() {
-        this._name = new FloatTypeName();
-        this._text = new FloatTextValue();
-        this._typed = new FloatTypedValue();
-    }
-    get name() {return this._name}
-    get text() {return this._text}
-    get typed() {return this._typed}
-}
-class BigIntTypeStore {
-    constructor() {
-        this._name = new BigIntTypeName();
-        this._text = new BigIntTextValue();
-        this._typed = new BigIntTypedValue();
+        super(new Integer64TypeName(), new Integer64TextValue(), new IntegerTypedValue());
+//        this._name = new Integer64TypeName();
+//        this._text = new Integer64TextValue();
+//        this._typed = new IntegerTypedValue();
     }
 }
-class BigInt2TypeStore {
+class FloatTypeStore extends TypeStore {
     constructor() {
-        this._name = new BigInt2TypeName();
-        this._text = new BigInt2TextValue();
-        this._typed = new BigIntTypedValue();
+        super(new FloatTypeName(), new FloatTextValue(), new FloatTypedValue());
+//        this._name = new FloatTypeName();
+//        this._text = new FloatTextValue();
+//        this._typed = new FloatTypedValue();
+    }
+//    get name() {return this._name}
+//    get text() {return this._text}
+//    get typed() {return this._typed}
+}
+class BigIntTypeStore extends TypeStore {
+    constructor() {
+        super(new BigIntTypeName(), new BigIntTextValue(), new BigIntTypedValue());
+//        this._name = new BigIntTypeName();
+//        this._text = new BigIntTextValue();
+//        this._typed = new BigIntTypedValue();
     }
 }
-class BigInt8TypeStore {
+class BigInt2TypeStore extends TypeStore {
     constructor() {
-        this._name = new BigInt8TypeName();
-        this._text = new BigInt8TextValue();
-        this._typed = new BigIntTypedValue();
+        super(new BigInt2TypeName(), new BigInt2TextValue(), new BigIntTypedValue());
+//        this._name = new BigInt2TypeName();
+//        this._text = new BigInt2TextValue();
+//        this._typed = new BigIntTypedValue();
     }
 }
-class BigInt16TypeStore {
+class BigInt8TypeStore extends TypeStore {
     constructor() {
-        this._name = new BigInt16TypeName();
-        this._text = new BigInt16TextValue();
-        this._typed = new BigIntTypedValue();
+        super(new BigInt8TypeName(), new BigInt8TextValue(), new BigIntTypedValue());
+//        this._name = new BigInt8TypeName();
+//        this._text = new BigInt8TextValue();
+//        this._typed = new BigIntTypedValue();
     }
 }
-class BigInt64TypeStore {
+class BigInt16TypeStore extends TypeStore {
     constructor() {
-        this._name = new BigInt64TypeName();
-        this._text = new BigInt64TextValue();
-        this._typed = new BigIntTypedValue();
+        super(new BigInt16TypeName(), new BigInt16TextValue(), new BigIntTypedValue());
+//        this._name = new BigInt16TypeName();
+//        this._text = new BigInt16TextValue();
+//        this._typed = new BigIntTypedValue();
     }
 }
-class BlobTypeStore {
+class BigInt64TypeStore extends TypeStore {
     constructor() {
-        this._name = new BlobTypeName();
-        this._text = new BlobTextValue();
-        this._typed = new BlobTypedValue();
-    }
-    get name() {return this._name}
-    get text() {return this._text}
-    get typed() {return this._typed}
-}
-class Binary64TypeStore {
-    constructor() {
-        this._name = new Binary64TypeName();
-        this._text = new Binary64TextValue();
-        this._typed = new Binary64TypedValue();
+        super(new BigInt64TypeName(), new BigInt64TextValue(), new BigIntTypedValue());
+//        this._name = new BigInt64TypeName();
+//        this._text = new BigInt64TextValue();
+//        this._typed = new BigIntTypedValue();
     }
 }
-class Binary256TypeStore {
+class BlobTypeStore extends TypeStore {
     constructor() {
-        this._name = new Binary256TypeName();
-        this._text = new Binary256TextValue();
-        this._typed = new Binary256TypedValue();
+        super(new BlobTypeName(), new BlobTextValue(), new BlobTypedValue());
+//        this._name = new BlobTypeName();
+//        this._text = new BlobTextValue();
+//        this._typed = new BlobTypedValue();
     }
-    get name() {return this._name}
-    get text() {return this._text}
-    get typed() {return this._typed}
+//    get name() {return this._name}
+//    get text() {return this._text}
+//    get typed() {return this._typed}
+}
+class Binary64TypeStore extends TypeStore {
+    constructor() {
+        super(new Binary64TypeName(), new Binary64TextValue(), new Binary64TypedValue());
+//        this._name = new Binary64TypeName();
+//        this._text = new Binary64TextValue();
+//        this._typed = new Binary64TypedValue();
+    }
+}
+class Binary256TypeStore extends TypeStore {
+    constructor() {
+        super(new Binary256TypeName(), new Binary256TextValue(), new Binary256TypedValue());
+//        this._name = new Binary256TypeName();
+//        this._text = new Binary256TextValue();
+//        this._typed = new Binary256TypedValue();
+    }
+//    get name() {return this._name}
+//    get text() {return this._text}
+//    get typed() {return this._typed}
 }
 
 
 
 class TypeName {
-    
+    match(v){return this.alias.some(a=>a===v)}
 }
 class AnyTypeName extends TypeName {
     //static #alias = 'any'.split(' ');
@@ -209,9 +247,10 @@ class NumberTypeName extends TypeName {
     get alias(){return 'n num number'.split(' ')}
 }
 class IntegerTypeName extends NumberTypeName {
-    get alias(){return 'i int integer'.split(' ')}
-    get alias(){return 'i int integer'.split(' ').map(a=>`${a}${this._base}`)}
+//    get alias(){return 'i int integer'.split(' ')}
+    get alias(){return 'i int integer'.split(' ').map(a=>`${a}${10===this._base ? '' : this._base}`)}
     constructor(base=10, prefix='d') {
+        super();
         if (!Type.isInt(base)){throw new TypeError(`基数はInt型であるべきです。:${base}:${typeof base}`)}
         if (!Type.isStr(prefix)){throw new TypeError(`プレフィクスはString型であるべきです。:${prefix}:${typeof prefix}`)}
         if (1 < prefix.length){throw new TypeError(`プレフィクスは1字であるべきです。:${prefix}:${prefix.length}`)}
@@ -239,25 +278,39 @@ class Integer36TypeName extends IntegerTypeName {
     constructor() {super(36,'z')}
 }
 class Integer64TypeName extends IntegerTypeName {
-    constructor() {super(64,'/')}
+    constructor() {super(64,'_')}
 }
 class FloatTypeName extends NumberTypeName {
     get alias(){return 'f flt float'.split(' ')}
 }
 class BigIntTypeName extends TypeName {
-    get alias(){return 'I bi bint bigint'.split(' ')}
+//    get alias(){return 'I bi bint bigint'.split(' ')}
+    get alias(){return 'I bi bint bigint'.split(' ').map(a=>`${a}${10===this._base ? '' : this._base}`)}
+    constructor(base=10, prefix='d') {
+        super();
+        if (!Type.isInt(base)){throw new TypeError(`基数はInt型であるべきです。:${base}:${typeof base}`)}
+        if (!Type.isStr(prefix)){throw new TypeError(`プレフィクスはString型であるべきです。:${prefix}:${typeof prefix}`)}
+        if (1 < prefix.length){throw new TypeError(`プレフィクスは1字であるべきです。:${prefix}:${prefix.length}`)}
+        this._base = base;
+        this._prefix = `0${prefix}`;
+    }
+    get base(){return this._base}
 }
-class BigInt2TypeName extends TypeName {
-    get alias(){return 'I2 bi2 bint2 bigint2'.split(' ')}
+class BigInt2TypeName extends BigIntTypeName {
+//    get alias(){return 'I2 bi2 bint2 bigint2'.split(' ')}
+    constructor(){super(2, 'B')}
 }
-class BigInt2TypeName extends TypeName {
-    get alias(){return 'I8 bi8 bint8 bigint8'.split(' ')}
+class BigInt8TypeName extends BigIntTypeName {
+//    get alias(){return 'I8 bi8 bint8 bigint8'.split(' ')}
+    constructor(){super(8, 'O')}
 }
-class BigInt16TypeName extends TypeName {
-    get alias(){return 'I16 bi16 bint16 bigint16'.split(' ')}
+class BigInt16TypeName extends BigIntTypeName {
+//    get alias(){return 'I16 bi16 bint16 bigint16'.split(' ')}
+    constructor(){super(16, 'X')}
 }
-class BigInt64TypeName extends TypeName {
-    get alias(){return 'I64 bi64 bint64 bigint64'.split(' ')}
+class BigInt64TypeName extends BigIntTypeName {
+//    get alias(){return 'I64 bi64 bint64 bigint64'.split(' ')}
+    constructor(){super(64, '/')}
 }
 class BlobTypeName extends TypeName {
     get alias(){return 'blob'.split(' ')}
@@ -404,34 +457,35 @@ class Binary256TextValue extends TextValue {
     }
 }
 class TypedValue {
-    constructor(default=null) {
-        this._default = default;
+    constructor(defaultValue=null) {
+        this._defaultValue = defaultValue;
     }
-    get default() {return this._default}
+    get defaultValue() {return this._defaultValue}
     match(v) {return false}
     toText(v, ...args) {return 'toString' in v ? v.toString(...args) : Object.prototype.toString.call(v)}
 }
 class AnyTypedValue extends TypedValue {
-    constructor(default=null) {super(default);}
+    constructor(defaultValue=null) {super(defaultValue);}
     match(v) {return true}
 }
 class StringTypedValue extends TypedValue {
-    constructor(default='') {super(default ?? '');}
+    constructor(defaultValue='') {super(defaultValue ?? '');}
     match(v) {return Type.isStr(v)}
 }
 class BooleanTypedValue extends TypedValue {
-    constructor(default=false) {super(default ?? false);}
+    constructor(defaultValue=false) {super(defaultValue ?? false);}
     match(v) {return Type.isBln(v)}
 }
 class NumberTypedValue extends TypedValue {
-    constructor(default=0) {super(default ?? 0);}
+    constructor(defaultValue=0) {super(defaultValue ?? 0);}
     //match(v) {return Type.isNumber(v)}
     match(v) {return Type.isNumber(v)}
 }
 class BasedNumberTypedValue extends NumberTypedValue {
-    constructor(default=0, base=10) {
-        super(default ?? 0);
-        if (Type.isInt(base) && 2 <= v && v <= Number.MAX_SAFE_INTEGER){throw new TypeError(`baseは2〜${Number.MAX_SAFE_INTEGER}の整数値であるべきです。:${base}`)}
+    constructor(defaultValue=0, base=10) {
+        super(defaultValue ?? 0);
+        console.log()
+        if (!(Type.isInt(base) && 2 <= base && base <= Number.MAX_SAFE_INTEGER)){throw new TypeError(`baseは2〜${Number.MAX_SAFE_INTEGER}の整数値であるべきです。:${base}:${typeof base}`)}
         this._base = base;
     }
     match(v) {
@@ -445,67 +499,67 @@ class BasedNumberTypedValue extends NumberTypedValue {
     toString(v){return super.toString(v, this._base)}
 }
 class IntegerTypedValue extends BasedNumberTypedValue {
-    constructor(default=0, base=10) {super(default ?? 0, base ?? 10)}
+    constructor(defaultValue=0, base=10) {super(defaultValue ?? 0, base ?? 10)}
 }
 class Integer2TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=2) {super(default ?? 0, base ?? 2)}
+    constructor(defaultValue=0, base=2) {super(defaultValue ?? 0, base ?? 2)}
 }
 class Integer8TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=8) {super(default ?? 0, base ?? 8)}
+    constructor(defaultValue=0, base=8) {super(defaultValue ?? 0, base ?? 8)}
 }
 class Integer16TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=16) {super(default ?? 0, base ?? 16)}
+    constructor(defaultValue=0, base=16) {super(defaultValue ?? 0, base ?? 16)}
 }
 class Integer32TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=32) {super(default ?? 0, base ?? 32)}
+    constructor(defaultValue=0, base=32) {super(defaultValue ?? 0, base ?? 32)}
 }
 class Integer36TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=36) {super(default ?? 0, base ?? 36)}
+    constructor(defaultValue=0, base=36) {super(defaultValue ?? 0, base ?? 36)}
 }
 class Integer64TypedValue extends IntegerTypedValue {
-    constructor(default=0, base=64) {super(default ?? 0, base ?? 64)}
+    constructor(defaultValue=0, base=64) {super(defaultValue ?? 0, base ?? 64)}
     toString(v){return IntegerBase64.toBase64(v)}
 }
 class FloatTypedValue extends NumberTypedValue {
-    constructor(default=0) {super(default ?? 0);}
+    constructor(defaultValue=0) {super(defaultValue ?? 0);}
     match(v) {// 1で割り切れる数もFloatと判断する。この時Intとの区別が付かない！
         if (!super.match(v)){return false}
         return Type.isFloat(v) || Type.isInt(v)
     }
 }
 class BigIntTypedValue extends BasedNumberTypedValue {
-    constructor(default=0n, base=10) {super(default ?? 0n, base ?? 10);}
+    constructor(defaultValue=0n, base=10) {super(defaultValue ?? 0n, base ?? 10);}
     match(v) {return Type.isBigInt(v)}
 }
 class BigInt2TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=2) {super(default ?? 0n, base ?? 2);}
+    constructor(defaultValue=0n, base=2) {super(defaultValue ?? 0n, base ?? 2);}
 }
 class BigInt8TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=8) {super(default ?? 0n, base ?? 8);}
+    constructor(defaultValue=0n, base=8) {super(defaultValue ?? 0n, base ?? 8);}
 }
 class BigInt16TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=16) {super(default ?? 0n, base ?? 16);}
+    constructor(defaultValue=0n, base=16) {super(defaultValue ?? 0n, base ?? 16);}
 }
 class BigInt32TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=32) {super(default ?? 0n, base ?? 32);}
+    constructor(defaultValue=0n, base=32) {super(defaultValue ?? 0n, base ?? 32);}
 }
 class BigInt36TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=36) {super(default ?? 0n, base ?? 36);}
+    constructor(defaultValue=0n, base=36) {super(defaultValue ?? 0n, base ?? 36);}
 }
 class BigInt64TypedValue extends BigIntTypedValue {
-    constructor(default=0n, base=64) {super(default ?? 0n, base ?? 64);}
+    constructor(defaultValue=0n, base=64) {super(defaultValue ?? 0n, base ?? 64);}
     toString(v){return IntegerBase64.toBase64(v)}
 }
 class BlobTypedValue extends TypedValue {
-    constructor(default=null) {super(default ?? new Uint8Array());}
+    constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
     match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
 }
 class Binary64TypedValue extends TypedValue {
-    constructor(default=null) {super(default ?? new Uint8Array());}
+    constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
     match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
 }
 class Binary256TypedValue extends TypedValue {
-    constructor(default=null) {super(default ?? new Uint8Array());}
+    constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
     match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
 }
 
@@ -548,32 +602,6 @@ class IntegerBase64 {
         }
     }
     */
-}
-
-class IntegerBaseN {
-    constructor(type, base=64) {
-        if (Type.isInt(base) && 2<=base && base<=256){throw new TypeError(`baseは2〜64か256の整数であるべきです。:${base}`)}
-        this._base = base;
-        this._type = type;
-    }
-    static Types = Object.freeze({auto:0, int:1, bigint:2})
-    static to64(integer) {return this.toBase64(integer)}
-    static toInt(base64){return this.toInteger(base64)}
-    static toBase64(v){
-             if (Type.isInt(v)){return NumberBase64.toBase(v)}
-        else if (Type.isBigInt(v)){return BigIntBase64.toBase(v)}
-        else {throw new TypeError(`IntegerBase64.toBase()の引数はIntegerかBigInt型であるべきです。`)}
-    }
-    static toInteger(v, type=0){// type=0:auto/1:int/2:bigint
-             if (type===IntegerBase64.Types.int) {return NumberBase64.toInteger(v)}
-        else if (type===IntegerBase64.Types.bigint) {return BigIntBase64.toInteger(v)}
-        else {
-            const n = NumberBase64.toInteger(v);
-            return (n < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < n) ? BigIntBase64.toInteger(v) : n;
-        }
-    }
-
-
 }
 class NumberBase64 {
     static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
@@ -680,8 +708,33 @@ class TypeBase64 {
     }
 }
 */
+/*
+class IntegerBaseN {
+    constructor(type, base=64) {
+        if (Type.isInt(base) && 2<=base && base<=256){throw new TypeError(`baseは2,8,16,32,36,64,256の整数であるべきです。:${base}`)}
+        this._base = base;
+        this._type = type;
+    }
+    static Types = Object.freeze({auto:0, int:1, bigint:2})
+    static to64(integer) {return this.toBase64(integer)}
+    static toInt(base64){return this.toInteger(base64)}
+    static toBase64(v){
+             if (Type.isInt(v)){return NumberBase64.toBase(v)}
+        else if (Type.isBigInt(v)){return BigIntBase64.toBase(v)}
+        else {throw new TypeError(`IntegerBase64.toBase()の引数はIntegerかBigInt型であるべきです。`)}
+    }
+    static toInteger(v, type=0){// type=0:auto/1:int/2:bigint
+             if (type===IntegerBase64.Types.int) {return NumberBase64.toInteger(v)}
+        else if (type===IntegerBase64.Types.bigint) {return BigIntBase64.toInteger(v)}
+        else {
+            const n = NumberBase64.toInteger(v);
+            return (n < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < n) ? BigIntBase64.toInteger(v) : n;
+        }
+    }
+}
+*/
 
-
+/*
 class LiteralType {//リテラル値から型を推論する
     static get(text, defTxt) {
         console.log(`LiteralType.get:`, text, defTxt, /^(-)?\d+n$/.test(text), /^(-)?[0-9]+n$/.test(text), /^(-)?[0-9]+n$/.test('0n'))
@@ -950,6 +1003,6 @@ class BigIntDataType extends DataType {
     } // BigInt('x') SyntaxError: Cannot convert x to a BigInt
     matchType(v) {return Type.isBigInt(v)}
 }
-
-window.TypedText = TypedText;
+*/
+window.TypeStores = new TypeStores();
 })();
