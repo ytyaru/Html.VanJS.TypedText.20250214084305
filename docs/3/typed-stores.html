@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+<meta name="description" content="">
+<meta name="author" content="ytyaru">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.ja">
+<link rel="icon" href="../asset/image/author/ytyaru.png">
+<link rel="stylesheet" href="css/style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="../lib/van/1.2.6/nomodule.min.js"></script>
+<script src="../js/footer.js"></script>
+<script src="../lib/util/type.js"></script>
+<script src="../lib/util/test/assertion.js"></script>
+<script src="../lib/util/array/eq.js"></script>
+<script src="js/typed-text.js"></script>
+<script src="js/type-stores.js"></script>
+<!--<script src="js/main.js"></script>-->
+<script>
+window.addEventListener('DOMContentLoaded', async(event) => {
+    const a = new Assertion();
+    a.t('TypedText' in window)
+    a.t('TypeStores' in window)
+    a.t(()=>{
+        console.log(TypeStores.typeNames)
+        const expected = ["BooleanTypeStore", "IntegerTypeStore", "Integer2TypeStore", "Integer8TypeStore", "Integer16TypeStore", "Integer32TypeStore", "Integer36TypeStore", "Integer64TypeStore", "FloatTypeStore", "NumberTypeStore", "BigIntTypeStore", "BigInt2TypeStore", "BigInt8TypeStore", "BigInt16TypeStore", "BigInt64TypeStore", "BlobTypeStore", "Binary64TypeStore", "Binary256TypeStore", "StringTypeStore", "AnyTypeStore"];
+        return expected.eqV(TypeStores.typeNames)
+    })
+    a.t(()=>{return 20===TypeStores.typeClss.length && TypeStores.typeClss.every(c=>Type.isCls(c))});
+    a.t(()=>{return 20===TypeStores.typeInss.length && TypeStores.typeInss.every(i=>Type.isIns(i))});
+    // getClsFomName()
+    a.t(TypeStores.getClsFomName('any')===TypeStores.typeCls.AnyTypeStore);
+    a.t(TypeStores.getClsFomName('string')===TypeStores.typeCls.StringTypeStore);
+    a.t(TypeStores.getClsFomName('str')===TypeStores.typeCls.StringTypeStore);
+    a.t(TypeStores.getClsFomName('s')===TypeStores.typeCls.StringTypeStore);
+    a.t(TypeStores.getClsFomName('boolean')===TypeStores.typeCls.BooleanTypeStore);
+    a.t(TypeStores.getClsFomName('bool')===TypeStores.typeCls.BooleanTypeStore);
+    a.t(TypeStores.getClsFomName('bln')===TypeStores.typeCls.BooleanTypeStore);
+    a.t(TypeStores.getClsFomName('b')===TypeStores.typeCls.BooleanTypeStore);
+    a.t(TypeStores.getClsFomName('integer')===TypeStores.typeCls.IntegerTypeStore);
+    a.t(TypeStores.getClsFomName('int')===TypeStores.typeCls.IntegerTypeStore);
+    a.t(TypeStores.getClsFomName('i')===TypeStores.typeCls.IntegerTypeStore);
+    a.t(TypeStores.getClsFomName('integer2')===TypeStores.typeCls.Integer2TypeStore);
+    a.t(TypeStores.getClsFomName('int2')===TypeStores.typeCls.Integer2TypeStore);
+    a.t(TypeStores.getClsFomName('i2')===TypeStores.typeCls.Integer2TypeStore);
+    a.t(TypeStores.getClsFomName('integer8')===TypeStores.typeCls.Integer8TypeStore);
+    a.t(TypeStores.getClsFomName('int8')===TypeStores.typeCls.Integer8TypeStore);
+    a.t(TypeStores.getClsFomName('i8')===TypeStores.typeCls.Integer8TypeStore);
+    a.t(TypeStores.getClsFomName('integer16')===TypeStores.typeCls.Integer16TypeStore);
+    a.t(TypeStores.getClsFomName('int16')===TypeStores.typeCls.Integer16TypeStore);
+    a.t(TypeStores.getClsFomName('i16')===TypeStores.typeCls.Integer16TypeStore);
+    a.t(TypeStores.getClsFomName('integer32')===TypeStores.typeCls.Integer32TypeStore);
+    a.t(TypeStores.getClsFomName('int32')===TypeStores.typeCls.Integer32TypeStore);
+    a.t(TypeStores.getClsFomName('i32')===TypeStores.typeCls.Integer32TypeStore);
+    a.t(TypeStores.getClsFomName('integer36')===TypeStores.typeCls.Integer36TypeStore);
+    a.t(TypeStores.getClsFomName('int36')===TypeStores.typeCls.Integer36TypeStore);
+    a.t(TypeStores.getClsFomName('i36')===TypeStores.typeCls.Integer36TypeStore);
+    a.t(TypeStores.getClsFomName('integer64')===TypeStores.typeCls.Integer64TypeStore);
+    a.t(TypeStores.getClsFomName('int64')===TypeStores.typeCls.Integer64TypeStore);
+    a.t(TypeStores.getClsFomName('i64')===TypeStores.typeCls.Integer64TypeStore);
+    a.t(TypeStores.getClsFomName('float')===TypeStores.typeCls.FloatTypeStore);
+    a.t(TypeStores.getClsFomName('flt')===TypeStores.typeCls.FloatTypeStore);
+    a.t(TypeStores.getClsFomName('f')===TypeStores.typeCls.FloatTypeStore);
+    a.t(TypeStores.getClsFomName('number')===TypeStores.typeCls.NumberTypeStore);
+    a.t(TypeStores.getClsFomName('num')===TypeStores.typeCls.NumberTypeStore);
+    a.t(TypeStores.getClsFomName('n')===TypeStores.typeCls.NumberTypeStore);
+    a.t(TypeStores.getClsFomName('bigint')===TypeStores.typeCls.BigIntTypeStore);
+    a.t(TypeStores.getClsFomName('bint')===TypeStores.typeCls.BigIntTypeStore);
+    a.t(TypeStores.getClsFomName('bi')===TypeStores.typeCls.BigIntTypeStore);
+    a.t(TypeStores.getClsFomName('I')===TypeStores.typeCls.BigIntTypeStore);
+    a.t(TypeStores.getClsFomName('bigint2')===TypeStores.typeCls.BigInt2TypeStore);
+    a.t(TypeStores.getClsFomName('bint2')===TypeStores.typeCls.BigInt2TypeStore);
+    a.t(TypeStores.getClsFomName('bi2')===TypeStores.typeCls.BigInt2TypeStore);
+    a.t(TypeStores.getClsFomName('I2')===TypeStores.typeCls.BigInt2TypeStore);
+    a.t(TypeStores.getClsFomName('bigint8')===TypeStores.typeCls.BigInt8TypeStore);
+    a.t(TypeStores.getClsFomName('bint8')===TypeStores.typeCls.BigInt8TypeStore);
+    a.t(TypeStores.getClsFomName('bi8')===TypeStores.typeCls.BigInt8TypeStore);
+    a.t(TypeStores.getClsFomName('I8')===TypeStores.typeCls.BigInt8TypeStore);
+    a.t(TypeStores.getClsFomName('bigint16')===TypeStores.typeCls.BigInt16TypeStore);
+    a.t(TypeStores.getClsFomName('bint16')===TypeStores.typeCls.BigInt16TypeStore);
+    a.t(TypeStores.getClsFomName('bi16')===TypeStores.typeCls.BigInt16TypeStore);
+    a.t(TypeStores.getClsFomName('I16')===TypeStores.typeCls.BigInt16TypeStore);
+//    a.t(TypeStores.getClsFomName('bigint32')===TypeStores.typeCls.BigInt32TypeStore);
+//    a.t(TypeStores.getClsFomName('bint32')===TypeStores.typeCls.BigInt32TypeStore);
+//    a.t(TypeStores.getClsFomName('bi32')===TypeStores.typeCls.BigInt32TypeStore);
+//    a.t(TypeStores.getClsFomName('I32')===TypeStores.typeCls.BigInt32TypeStore);
+//    a.t(TypeStores.getClsFomName('integer36')===TypeStores.typeCls.BigInt36TypeStore);
+//    a.t(TypeStores.getClsFomName('int36')===TypeStores.typeCls.BigInt36TypeStore);
+//    a.t(TypeStores.getClsFomName('i36')===TypeStores.typeCls.BigInt36TypeStore);
+    a.t(TypeStores.getClsFomName('bigint64')===TypeStores.typeCls.BigInt64TypeStore);
+    a.t(TypeStores.getClsFomName('bint64')===TypeStores.typeCls.BigInt64TypeStore);
+    a.t(TypeStores.getClsFomName('bi64')===TypeStores.typeCls.BigInt64TypeStore);
+    a.t(TypeStores.getClsFomName('I64')===TypeStores.typeCls.BigInt64TypeStore);
+    a.t(TypeStores.getClsFomName('blob')===TypeStores.typeCls.BlobTypeStore);
+    a.t(TypeStores.getClsFomName('binary64')===TypeStores.typeCls.Binary64TypeStore);
+    a.t(TypeStores.getClsFomName('bin64')===TypeStores.typeCls.Binary64TypeStore);
+    a.t(TypeStores.getClsFomName('binary256')===TypeStores.typeCls.Binary256TypeStore);
+    a.t(TypeStores.getClsFomName('bin256')===TypeStores.typeCls.Binary256TypeStore);
+    a.fin();
+});
+</script>
+</head>
+<body>
+    <main></main>
+    <footer></footer>
+</body>
+</html>
+<!-- https://coliss.com/articles/build-websites/operation/work/html-template-for-web-apps-or-sites.html -->
+<!-- https://coliss.com/articles/build-websites/operation/work/html5-template-for-2018.html -->
