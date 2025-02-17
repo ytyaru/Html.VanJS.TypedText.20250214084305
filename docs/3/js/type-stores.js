@@ -15,6 +15,7 @@ class TypeStores {
     constructor() {
 //        this._types = [BooleanTypeStore, IntegerTypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
         this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
+//        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
         this._typeObjs = Object.freeze(this._types.reduce((o,t,i)=>Object.assign(o,{[t.name]:t}), {}));
         this._typeInss = Object.freeze(this._types.map(t=>new t()));
     }
@@ -346,27 +347,46 @@ class BooleanTextValue extends TextValue {
 class NumberTextValue extends TextValue {
     match(v){
         super.match(v)
-        return /^(-)?(\d+)?\.\d+$/.test(v)
+        return /^(-)?(\d+)?\.\d+$/.test(v); // NaN, Infinity, 指数(1.23e4)は対象外
     }
-    toValue(v){return parseInt(v)}
+    toValue(v){return Number(v)}
 }
 class BasedNumberTextValue extends NumberTextValue {
     constructor(base) {
+        super();
         if (!(Type.isInt(base) && 2<=base && base<=Number.MAX_SAFE_INTEGER)) {
             throw new TypeError(`baseは2〜${Number.MAX_SAFE_INTEGER}の整数値であるべきです。:${base}:${typeof base}`)
         }
         this._base = base;
+    }
+    match(v) {
+        super.match(v);
+        const V = this.toValue(v);
+        if (Number.isNaN(V)){return false}//parseInt不能
+        if (v.includes('.')){return false}//小数点がある
+        if (/^(-)?Infinity$/i.test(v)){return false}//無限数は文字列とする
+        if (/^(-)?NaN$/i.test(v)){return false}//非数は文字列とする
+        // BigIntである（parseIntできてしまうがTypedTextにおいては別の型を意図した書式である）
+        if (/^(-)?[0-9]+n$/.test(v)){return false}
+        if (/^0B[01]+/.test(v)){return false}
+        if (/^0O[0-7]+/.test(v)){return false}
+        if (/^0X[0-9a-zA-Z]+/.test(v)){return false}
+        if (/^0\/[0-9a-zA-Z\+\/]+/.test(v)){return false}
+        if (!(Type.isInt(V) && Number.MIN_SAFE_INTEGER <= V &&  V <= Number.MAX_SAFE_INTEGER)) {
+            throw new TypeError(`値は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}の整数値になる文字列であるべきです。:${v}:${V}:${this.base}`)
+        }
+        return true;
     }
     get base(){return this._base}
     toValue(v){return parseInt(v, this._base)} // 2<=base<=36
 }
 class IntegerTextValue extends BasedNumberTextValue {
     constructor() {super(10)}
-    match(v){// 十進数(5,8)、指数(2e8,-1.23e5)
+    match(v){// 十進数(5,8)。指数(2e8,-1.23e5)は対象外。
         super.match(v)
-        return /^(-)?\d+$/.test(v) || /^(-)?\d+e\d+$/.test(v) || /^(-)?\d+\.\d+e\d+$/.test(v)
+        return /^(-)?\d+$/.test(v);
+        //return /^(-)?\d+$/.test(v) || /^(-)?\d+e\d+$/.test(v) || /^(-)?\d+\.\d+e\d+$/.test(v)
     }
-    toValue(v){return parseInt(v)}
 }
 class Integer2TextValue extends BasedNumberTextValue {
     constructor() {super(2)}
@@ -392,15 +412,17 @@ class Integer16TextValue extends BasedNumberTextValue {
 class Integer32TextValue extends BasedNumberTextValue {
     constructor() {super(32)}
     match(v){// 三十二進数(0vVV)
-        super.match(v)
+//        super.super.match(v)
+        TextValue.prototype.match.call(this, v)
         return /^0v[0-9a-vA-V]+$/.test(v)
     }
-    toValue(v){return v.toString(32)}
 }
 class Integer36TextValue extends BasedNumberTextValue {
     constructor() {super(36)}
     match(v){// 三十六進数(0zZZ)
-        super.match(v)
+        //super.super.match(v)
+        //if (!Type.isStr(v)){throw new TypeError(`引数値は文字列型であるべきです。:${v}:${typeof v}`)}
+        TextValue.prototype.match.call(this, v)
         return /^0z[0-9a-zA-Z]+$/.test(v)
     }
 }
