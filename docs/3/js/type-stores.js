@@ -515,7 +515,8 @@ class BigInt64TextValue extends BigIntTextValue {
     toValue(v){return IntegerBase2To64.toInteger(v, 64, IntegerBase2To64.Types.BigInt)}
 }
 class BlobTextValue extends TextValue {// dataURI形式で表現する
-    get #pattern() {return /^data:.+$/}
+    //get #pattern() {return /^data:.+$/}
+    get #pattern() {return /^data:[\S]+(;base64)?\,[0-9a-zA-Z\+\/\=]+$/}
     match(v){
         super.match(v)
 //        return /^data:.+$/.test(v)
@@ -523,7 +524,7 @@ class BlobTextValue extends TextValue {// dataURI形式で表現する
     }
     async toValue(v){// v(String)からArrayBufferに変換して返す
         if (!this.match(v)){throw new TypeError(`引数値は${this.#pattern}に合致した文字列であるべきです。:${v}`)}
-        const res = await fetch(dataUrl);
+        const res = await fetch(v); // v=dataUri
         const blob = await res.blob();
         return blob;
     }
@@ -550,29 +551,40 @@ class DataUri {
 
 // https://developer.mozilla.org/ja/docs/Glossary/Base64
 class Utf8Base64 {
-    toBytes(base64) {
+    static toBytes(base64) {
         const binStr = atob(base64); // Ascii
         return Uint8Array.from(binStr, (m) => m.codePointAt(0)); // UTF8
     }
-    toString(bytes) {
+    static toString(bytes) {
         const binStr = Array.from(bytes, (byte)=>String.fromCodePoint(byte)).join("");
         return btoa(binStr);
     }
 }
+//Utf8Base64.toBytes(base64)
+//Utf8Base64.toString(bytes)
 
 class Binary64TextValue extends TextValue {
     match(v){
         super.match(v)
         return /^base64:[0-9a-zA-Z\+\/\=]+$/.test(v)
     }
+    toValue(v) {// v=base64 String
+        return new ArrayBuffer(atob(v))
+    }
 }
 class Binary256TextValue extends TextValue {
+    static #chars = '⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿'.split('');
     // https://github.com/qntm/braille-encode/
     match(v){
         super.match(v)
         return /^base256:[⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿]+$/u.test(v)
     }
+    toValue(v) {// v=base256 String
+        Binary256TextValue.#chars.indexOf()
+        return new ArrayBuffer(atob(base64))
+    }
 }
+
 class TypedValue {
     constructor(defaultValue=null) {
         this._defaultValue = defaultValue;
@@ -609,8 +621,11 @@ class BasedNumberTypedValue extends NumberTypedValue {
         if (!super.match(v)){return false}
         const isInt = Type.isInt(v);
         const isSafe = Number.MIN_SAFE_INTEGER <= v && v <= Number.MAX_SAFE_INTEGER;
-        if (isInt && !isSafe) {console.warn(`整数の安全範囲を超過しました。Int型と判断しません。:${v}:${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}`)}
-        return isInt && isSafe;
+        //if (isInt && !isSafe) {console.warn(`整数の安全範囲を超過しました。Int型と判断しません。:${v}:${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}`)}
+        //return isInt && isSafe;
+        //if (isInt && !isSafe) {throw new RangeError(`整数の安全範囲を超過し誤差が生じています。BigInt型として表現すべきです。:${v}:${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}`)}
+        if (isInt && !isSafe) {console.warn(`整数の安全範囲を超過し誤差が生じています。それでもInteger(Number)型と判断します。:${v}:${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}`)}
+        return isInt;
     }
     get base() {return this._base}
     toString(v){return super.toString(v, this._base)}
@@ -675,11 +690,41 @@ class BigInt64TypedValue extends BigIntTypedValue {
 }
 class BlobTypedValue extends TypedValue {
     constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
-    match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
+    //match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
+    match(v) {return v instanceof Blob}
+    async toString(v) {// v:ArrayBuffer/Uint8Array/Blob
+        //if (!(v instanceof Blob)){throw new TypeError(`引数はBlob型であるべきです。:${typeof v}`)}
+        if (!this.match(v)){throw new TypeError(`引数はBlob型であるべきです。:${typeof v}`)}
+        // https://open-code.tech/post-1436/
+        const reader = new FileReader();
+        reader.readAsDataURL(v);
+        await new Promise(resolve=>reader.onload = function(){ resolve() })
+        return reader.result
+        /*
+        else if (v instanceof ArrayBuffer) {
+        } else if (v instanceof Uint8Array) {
+            v.buffer // ArrayBuffer
+        } else if (v instanceof DataView) {
+            v.buffer // ArrayBuffer
+        }
+        */
+    }
 }
 class Binary64TypedValue extends TypedValue {
     constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
     match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
+    toString(v) {
+        if (v instanceof ArrayBuffer) {
+//            const b = new Uint8Array(v);
+            return Utf8Base64.toString(v)
+        } else if (v instanceof Uint8Array) {
+//            v.buffer // ArrayBuffer
+            return Utf8Base64.toString(v.buffer)
+        } else if (v instanceof DataView) {
+//            v.buffer // ArrayBuffer
+            return Utf8Base64.toString(v.buffer)
+        }
+    }
 }
 class Binary256TypedValue extends TypedValue {
     constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
@@ -731,8 +776,8 @@ class NumberBase64 {
     static #base = 64;
     static toBase64(integer) {
         if (!Type.isNumber(integer) || !Type.isInt(integer)){throw new TypeError(`IntegerBase64.toBase64()の引数はNumber型であるべきです。:${integer}:${typeof integer}`)}
-        if (integer < 0){throw new TypeError(`正数のみ有効です。:${integer}`)}
-        if (v < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < v){throw new TypeError(`範囲超過しました。IntegerBase64.toBase64()の引数は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${integer}`)};
+        if (integer < 0){throw new RangeError(`正数のみ有効です。:${integer}`)}
+        if (v < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < v){throw new RangeError(`範囲超過しました。IntegerBase64.toBase64()の引数は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${integer}`)};
         //let residual = Math.floor(integer);
         let residual = integer;
         let result = '';
@@ -763,8 +808,8 @@ class BigIntBase64 {
     static toBase64(value) {
 //        Type[`is${type}`](value)
         if (!Type.isBigInt(integer)){throw new TypeError(`BigIntBase64.toBase64()の引数はBigInt型であるべきです。:${value}:${typeof value}`)}
-        if (value < 0){throw new TypeError(`正数のみ有効です。:${value}`)}
-        if (v < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < v){throw new TypeError(`範囲超過しました。IntegerBase64.toBase64()の引数は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${value}`)};
+        if (value < 0){throw new RangeError(`正数のみ有効です。:${value}`)}
+        if (v < Number.MIN_SAFE_INTEGER || Number.MAX_SAFE_INTEGER < v){throw new RangeError(`範囲超過しました。IntegerBase64.toBase64()の引数は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${value}`)};
         //let residual = Math.floor(value);
         let residual = value;
         let result = '';
@@ -813,11 +858,11 @@ class IntegerBase2To64 {// 2〜64まで
         else if (type===IntegerBase2To64.Types.BigInt && !Type.isBigInt(integer)){throw new TypeError(`typeにBigInt型が指定された場合、BigInt型であるべきです。:${integer}:${typeof integer}`)}
         if (Type.isInt(integer)) {
             if (0<=integer && integer<=Number.MAX_SAFE_INTEGER){return true}
-            else {throw new TypeError(`Number型整数値は0〜${Number.MAX_SAFE_INTEGER}以内であるべきです。:${integer}`)}
+            else {throw new RangeError(`Number型整数値は0〜${Number.MAX_SAFE_INTEGER}以内であるべきです。:${integer}`)}
         }
         else if (Type.isBigInt(integer)){
             if (0n<=integer){return true}//BigIntは上限値が定義されていない
-            else {throw new TypeError(`BigInt値は0n以上であるべきです。:${integer}`)}
+            else {throw new RangeError(`BigInt値は0n以上であるべきです。:${integer}`)}
         }
         else {throw new TypeError(`数はNumber型の整数値かBigInt型であるべきです。:${integer}:${typeof integer}`)}
     }
@@ -867,8 +912,8 @@ class NumberBase2To64 {// 2〜64まで
     static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
     static toBase(num, base=64) {
         this.#validBase(base);
-        if (num < 0){throw new TypeError(`正数のみ有効です。:${num}`)}
-        if (Number.MAX_SAFE_INTEGER < num){throw new TypeError(`範囲超過しました。NumberBase2To64.toBase64()の引数は0〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${num}`)};
+        if (num < 0){throw new RangeError(`正数のみ有効です。:${num}`)}
+        if (Number.MAX_SAFE_INTEGER < num){throw new RangeError(`範囲超過しました。NumberBase2To64.toBase64()の引数は0〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${num}`)};
         let residual = num;
         let result = '';
         while (true) {
@@ -915,7 +960,7 @@ class BigIntBase2To64 {// 2〜64まで
     static toBase(value, base) {
         this.#validBase(base);
         if (!Type.isBigInt(value)){throw new TypeError(`BigIntBase64.toBase64()の引数はBigInt型であるべきです。:${value}:${typeof value}`)}
-        if (value < 0n){throw new TypeError(`正数のみ有効です。:${value}`)}
+        if (value < 0n){throw new RangeError(`正数のみ有効です。:${value}`)}
         let residual = value;
         let result = '';
         while (true) {
