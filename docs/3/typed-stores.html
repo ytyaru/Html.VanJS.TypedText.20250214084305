@@ -28,12 +28,15 @@ window.addEventListener('DOMContentLoaded', async(event) => {
         console.log(TypeStores.getClsFomName('i32')===TypeStores.typeCls.Integer32TypeStore)
         console.log(TypeStores.getClsFomName('i32'), TypeStores.typeCls.Integer32TypeStore)
         console.log(TypeStores.getClsFomName('i32'), TypeStores.typeCls.Integer32TypeStore)
-        const expected = ["BooleanTypeStore", "IntegerTypeStore", "Integer2TypeStore", "Integer8TypeStore", "Integer16TypeStore", "Integer32TypeStore", "Integer36TypeStore", "Integer64TypeStore", "FloatTypeStore", "NumberTypeStore", "BigIntTypeStore", "BigInt2TypeStore", "BigInt8TypeStore", "BigInt16TypeStore", "BigInt64TypeStore", "BlobTypeStore", "Binary64TypeStore", "Binary256TypeStore", "StringTypeStore", "AnyTypeStore"];
+        const expected = ["BooleanTypeStore", "IntegerTypeStore", "Integer2TypeStore", "Integer8TypeStore", "Integer16TypeStore", "Integer32TypeStore", "Integer36TypeStore", "Integer64TypeStore", "FloatTypeStore", "NumberTypeStore", "BigIntTypeStore", "BigInt2TypeStore", "BigInt8TypeStore", "BigInt16TypeStore", "BigInt32TypeStore", "BigInt36TypeStore", "BigInt64TypeStore", "BlobTypeStore", "Binary64TypeStore", "Binary256TypeStore", "StringTypeStore", "AnyTypeStore"];
+//        const expected = ["BooleanTypeStore", "IntegerTypeStore", "Integer2TypeStore", "Integer8TypeStore", "Integer16TypeStore", "Integer32TypeStore", "Integer36TypeStore", "Integer64TypeStore", "FloatTypeStore", "NumberTypeStore", "BigIntTypeStore", "BigInt2TypeStore", "BigInt8TypeStore", "BigInt16TypeStore", "BigInt64TypeStore", "BlobTypeStore", "Binary64TypeStore", "Binary256TypeStore", "StringTypeStore", "AnyTypeStore"];
 //        const expected = ["BooleanTypeStore", "IntegerTypeStore", "Integer2TypeStore", "Integer8TypeStore", "Integer16TypeStore", "Integer64TypeStore", "FloatTypeStore", "NumberTypeStore", "BigIntTypeStore", "BigInt2TypeStore", "BigInt8TypeStore", "BigInt16TypeStore", "BigInt64TypeStore", "BlobTypeStore", "Binary64TypeStore", "Binary256TypeStore", "StringTypeStore", "AnyTypeStore"];
         return expected.eqV(TypeStores.typeNames)
     })
-    a.t(()=>{return 20===TypeStores.typeClss.length && TypeStores.typeClss.every(c=>Type.isCls(c))});
-    a.t(()=>{return 20===TypeStores.typeInss.length && TypeStores.typeInss.every(i=>Type.isIns(i))});
+    a.t(()=>{return 22===TypeStores.typeClss.length && TypeStores.typeClss.every(c=>Type.isCls(c))});
+    a.t(()=>{return 22===TypeStores.typeInss.length && TypeStores.typeInss.every(i=>Type.isIns(i))});
+//    a.t(()=>{return 20===TypeStores.typeClss.length && TypeStores.typeClss.every(c=>Type.isCls(c))});
+//    a.t(()=>{return 20===TypeStores.typeInss.length && TypeStores.typeInss.every(i=>Type.isIns(i))});
 //    a.t(()=>{return 18===TypeStores.typeClss.length && TypeStores.typeClss.every(c=>Type.isCls(c))});
 //    a.t(()=>{return 18===TypeStores.typeInss.length && TypeStores.typeInss.every(i=>Type.isIns(i))});
     // getClsFomName()
@@ -106,6 +109,7 @@ window.addEventListener('DOMContentLoaded', async(event) => {
     a.t(TypeStores.getClsFomName('bin256')===TypeStores.typeCls.Binary256TypeStore);
 
     // getClsFromText
+    a.t(TypeStores.getClsFromText('x')===TypeStores.typeCls.StringTypeStore);
     a.t(TypeStores.getClsFromText('v')===TypeStores.typeCls.BooleanTypeStore);
     a.t(TypeStores.getClsFromText('_')===TypeStores.typeCls.BooleanTypeStore);
     a.t(TypeStores.getClsFromText('0')===TypeStores.typeCls.IntegerTypeStore);
@@ -129,13 +133,28 @@ window.addEventListener('DOMContentLoaded', async(event) => {
     a.t(TypeStores.getClsFromText('0o77')===TypeStores.typeCls.Integer8TypeStore);
     a.t(TypeStores.getClsFromText('0xff')===TypeStores.typeCls.Integer16TypeStore);
     a.t(TypeStores.getClsFromText('0xFF')===TypeStores.typeCls.Integer16TypeStore);
+    a.t(TypeStores.getClsFromText('0vvv')===TypeStores.typeCls.Integer32TypeStore);
+    a.t(TypeStores.getClsFromText('0vVV')===TypeStores.typeCls.Integer32TypeStore);
+    a.t(TypeStores.getClsFromText('0zzz')===TypeStores.typeCls.Integer36TypeStore);
+    a.t(TypeStores.getClsFromText('0zZZ')===TypeStores.typeCls.Integer36TypeStore);
     a.t(TypeStores.getClsFromText('0_//')===TypeStores.typeCls.Integer64TypeStore);
 
     a.t(TypeStores.getClsFromText('0B11')===TypeStores.typeCls.BigInt2TypeStore);
     a.t(TypeStores.getClsFromText('0O77')===TypeStores.typeCls.BigInt8TypeStore);
     a.t(TypeStores.getClsFromText('0Xff')===TypeStores.typeCls.BigInt16TypeStore);
     a.t(TypeStores.getClsFromText('0XFF')===TypeStores.typeCls.BigInt16TypeStore);
+    console.log(TypeStores.getClsFromText('0Vvv'));
+    console.log(/^0V[0-9a-vA-V]$/.test('0Vvv'))
+    a.t(TypeStores.getClsFromText('0Vvv')===TypeStores.typeCls.BigInt32TypeStore);
+    a.t(TypeStores.getClsFromText('0VVV')===TypeStores.typeCls.BigInt32TypeStore);
+    a.t(TypeStores.getClsFromText('0Zzz')===TypeStores.typeCls.BigInt36TypeStore);
+    a.t(TypeStores.getClsFromText('0ZZZ')===TypeStores.typeCls.BigInt36TypeStore);
     a.t(TypeStores.getClsFromText('0///')===TypeStores.typeCls.BigInt64TypeStore);
+    a.t(TypeStores.getClsFromText('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAKZJREFUWEftl+EOgCAIhPH9H9rWj5qzA2TDYMz+lXPSd0dHjYKvFnw+vQV0oj4X02j/eh4CUVLkI3B7YdR+JuO9/iHgfYD2AqeAfCb8ux1rEuA6CT0XCYz5IH0bkGxatjx7akpgMbIrAU0ytO46D8zzw8q9KwEL+romtKbpScN6BKydUK8NUQhJPzzQAxpGz6kZSmDJcy6KUZGmeWA1zzlaq/vDTXgB6It0IRvncRQAAAAASUVORK5CYIIA')===TypeStores.typeCls.BlobTypeStore);
+    console.log(TypeStores.getClsFromText('base64:YmFzZTY0Cg=='))
+    console.log(TypeStores.getClsFromText('base256:⢀⠠⢠'))
+    a.t(TypeStores.getClsFromText('base64:YmFzZTY0Cg==')===TypeStores.typeCls.Binary64TypeStore);
+    a.t(TypeStores.getClsFromText('base256:⢀⠠⢠')===TypeStores.typeCls.Binary256TypeStore);
     a.fin();
 });
 </script>

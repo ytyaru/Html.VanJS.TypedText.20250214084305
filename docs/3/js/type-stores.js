@@ -14,8 +14,9 @@
 class TypeStores {
     constructor() {
 //        this._types = [BooleanTypeStore, IntegerTypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
-        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
+//        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
 //        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
+        this._types = [BooleanTypeStore, IntegerTypeStore, Integer2TypeStore, Integer8TypeStore, Integer16TypeStore, Integer32TypeStore, Integer36TypeStore, Integer64TypeStore, FloatTypeStore, NumberTypeStore, BigIntTypeStore, BigInt2TypeStore, BigInt8TypeStore, BigInt16TypeStore, BigInt32TypeStore, BigInt36TypeStore, BigInt64TypeStore, BlobTypeStore, Binary64TypeStore, Binary256TypeStore, StringTypeStore, AnyTypeStore];
         this._typeObjs = Object.freeze(this._types.reduce((o,t,i)=>Object.assign(o,{[t.name]:t}), {}));
         this._typeInss = Object.freeze(this._types.map(t=>new t()));
     }
@@ -190,6 +191,17 @@ class BigInt16TypeStore extends TypeStore {
 //        this._typed = new BigIntTypedValue();
     }
 }
+class BigInt32TypeStore extends TypeStore {
+    constructor() {
+        super(new BigInt32TypeName(), new BigInt32TextValue(), new BigIntTypedValue());
+    }
+}
+      
+class BigInt36TypeStore extends TypeStore {
+    constructor() {
+        super(new BigInt36TypeName(), new BigInt36TextValue(), new BigIntTypedValue());
+    }
+}
 class BigInt64TypeStore extends TypeStore {
     constructor() {
         super(new BigInt64TypeName(), new BigInt64TextValue(), new BigIntTypedValue());
@@ -309,6 +321,12 @@ class BigInt16TypeName extends BigIntTypeName {
 //    get alias(){return 'I16 bi16 bint16 bigint16'.split(' ')}
     constructor(){super(16, 'X')}
 }
+class BigInt32TypeName extends BigIntTypeName {
+    constructor(){super(32, 'V')}
+}
+class BigInt36TypeName extends BigIntTypeName {
+    constructor(){super(36, 'Z')}
+}
 class BigInt64TypeName extends BigIntTypeName {
 //    get alias(){return 'I64 bi64 bint64 bigint64'.split(' ')}
     constructor(){super(64, '/')}
@@ -371,7 +389,9 @@ class BasedNumberTextValue extends NumberTextValue {
         if (/^0B[01]+/.test(v)){return false}
         if (/^0O[0-7]+/.test(v)){return false}
         if (/^0X[0-9a-zA-Z]+/.test(v)){return false}
-        if (/^0\/[0-9a-zA-Z\+\/]+/.test(v)){return false}
+//        if (/^0V[0-9a-vA-V]+/.test(v)){return false}
+//        if (/^0Z[0-9a-zA-Z]+/.test(v)){return false}
+//        if (/^0\/[0-9a-zA-Z\+\/]+/.test(v)){return false}
         if (!(Type.isInt(V) && Number.MIN_SAFE_INTEGER <= V &&  V <= Number.MAX_SAFE_INTEGER)) {
             throw new TypeError(`値は${Number.MIN_SAFE_INTEGER}〜${Number.MAX_SAFE_INTEGER}の整数値になる文字列であるべきです。:${v}:${V}:${this.base}`)
         }
@@ -416,6 +436,7 @@ class Integer32TextValue extends BasedNumberTextValue {
         TextValue.prototype.match.call(this, v)
         return /^0v[0-9a-vA-V]+$/.test(v)
     }
+    toValue(v){return IntegerBase2To64.toInteger(v.toUpperCase(), 32, IntegerBase2To64.Types.Number)}
 }
 class Integer36TextValue extends BasedNumberTextValue {
     constructor() {super(36)}
@@ -425,15 +446,19 @@ class Integer36TextValue extends BasedNumberTextValue {
         TextValue.prototype.match.call(this, v)
         return /^0z[0-9a-zA-Z]+$/.test(v)
     }
+    toValue(v){return IntegerBase2To64.toInteger(v.toUpperCase(), 36, IntegerBase2To64.Types.Number)}
 }
 class Integer64TextValue extends BasedNumberTextValue {
     constructor() {super(64)}
     match(v){// 六十四進数(0_//)
-        super.match(v)
+        //super.match(v)
+        TextValue.prototype.match.call(this, v)
         return /^0_[0-9a-zA-Z\+\/]+$/.test(v)
     }
     //toValue(v){return parseInt(v, this._base)} // 2<=base<=36
-    toValue(v){return IntegerBase64.toInt(v, IntegerBase64.Types.Number)}
+    //toValue(v){return IntegerBase64.toInt(v, IntegerBase64.Types.Number)}
+    //toValue(v){return IntegerBase2To64.toInteger(v, 64, IntegerBase2To64.Types.Number)}
+    toValue(v){return IntegerBase2To64.toInteger(v, 64, IntegerBase2To64.Types.Number)}
 }
 class FloatTextValue extends NumberTextValue {
     match(v){
@@ -467,26 +492,27 @@ class BigInt16TextValue extends BigIntTextValue {
         return /^0X[0-9a-fA-F]+$/.test(v)
     }
 }
-/*
 class BigInt32TextValue extends BigIntTextValue {
     match(v){
         super.match(v)
-        return /^0V[0-9a-vA-V]$/.test(v)
+        return /^0V[0-9a-vA-V]+$/.test(v)
     }
+    toValue(v){return IntegerBase2To64.toInteger(v.toUpperCase(), 32, IntegerBase2To64.Types.BigInt)}
 }
 class BigInt36TextValue extends BigIntTextValue {
     match(v){
         super.match(v)
-        return /^0Z[0-9a-zA-Z]$/.test(v)
+        return /^0Z[0-9a-zA-Z]+$/.test(v)
     }
+    toValue(v){return IntegerBase2To64.toInteger(v.toUpperCase(), 36, IntegerBase2To64.Types.BigInt)}
 }
-*/
 class BigInt64TextValue extends BigIntTextValue {
     match(v){
         super.match(v)
         return /^0\/[0-9a-zA-Z\+\/]+$/.test(v)
     }
-    toValue(v){return IntegerBase64.toInteger(v, IntegerBase64.Types.BigInt)}
+    //toValue(v){return IntegerBase64.toInteger(v, IntegerBase64.Types.BigInt)}
+    toValue(v){return IntegerBase2To64.toInteger(v, 64, IntegerBase2To64.Types.BigInt)}
 }
 class BlobTextValue extends TextValue {// dataURI形式で表現する
     get #pattern() {return /^data:.+$/}
@@ -537,7 +563,7 @@ class Utf8Base64 {
 class Binary64TextValue extends TextValue {
     match(v){
         super.match(v)
-        return /^base64:[a-zA-Z\+\/]+$/.test(v)
+        return /^base64:[0-9a-zA-Z\+\/\=]+$/.test(v)
     }
 }
 class Binary256TextValue extends TextValue {
@@ -603,13 +629,16 @@ class Integer16TypedValue extends IntegerTypedValue {
 }
 class Integer32TypedValue extends IntegerTypedValue {
     constructor(defaultValue=0, base=32) {super(defaultValue ?? 0, base ?? 32)}
+    toString(v){return IntegerBase2To64.toBase(v, 32, IntegerBase2To64.Types.Number)}
 }
 class Integer36TypedValue extends IntegerTypedValue {
     constructor(defaultValue=0, base=36) {super(defaultValue ?? 0, base ?? 36)}
+    toString(v){return IntegerBase2To64.toBase(v, 36, IntegerBase2To64.Types.Number)}
 }
 class Integer64TypedValue extends IntegerTypedValue {
     constructor(defaultValue=0, base=64) {super(defaultValue ?? 0, base ?? 64)}
-    toString(v){return IntegerBase64.toBase64(v)}
+    //toString(v){return IntegerBase64.toBase64(v)}
+    toString(v){return IntegerBase2To64.toBase(v, 64, IntegerBase2To64.Types.Number)}
 }
 class FloatTypedValue extends NumberTypedValue {
     constructor(defaultValue=0) {super(defaultValue ?? 0);}
@@ -633,13 +662,16 @@ class BigInt16TypedValue extends BigIntTypedValue {
 }
 class BigInt32TypedValue extends BigIntTypedValue {
     constructor(defaultValue=0n, base=32) {super(defaultValue ?? 0n, base ?? 32);}
+    toString(v){return IntegerBase2To64.toBase(v, 32, IntegerBase2To64.Types.BigInt)}
 }
 class BigInt36TypedValue extends BigIntTypedValue {
     constructor(defaultValue=0n, base=36) {super(defaultValue ?? 0n, base ?? 36);}
+    toString(v){return IntegerBase2To64.toBase(v, 36, IntegerBase2To64.Types.BigInt)}
 }
 class BigInt64TypedValue extends BigIntTypedValue {
     constructor(defaultValue=0n, base=64) {super(defaultValue ?? 0n, base ?? 64);}
-    toString(v){return IntegerBase64.toBase64(v)}
+    //toString(v){return IntegerBase64.toBase64(v)}
+    toString(v){return IntegerBase2To64.toBase(v, 64, IntegerBase2To64.Types.BigInt)}
 }
 class BlobTypedValue extends TypedValue {
     constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
@@ -758,6 +790,175 @@ class BigIntBase64 {
 //    get chars(){return '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/'}
 //    get base(){return 64n}
 }
+class IntegerBase2To64 {// 2〜64まで
+    static Types = Object.freeze({Auto:0, Number:1, BigInt:2})
+    static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
+    static toBase(integer, base=64, type=IntegerBase2To64.Types.Auto) {
+        this.#within(integer, type);
+        this.#validBase(base);
+        let residual = integer;
+        let result = '';
+        while (true) {
+            rixit = integer % base;
+            result = this.#chars.charAt(rixit) + result;
+            residual = residual / this.base;
+            if (Type.isInt(integer)){residual = Math.floor(residual / this.base)}
+            if (Type.isInt(integer) && residual === 0){break}
+            else if (Type.isBigInt(integer) && residual === 0n){break}
+        }
+        return result;
+    }
+    static #within(integer, type) {
+             if (type===IntegerBase2To64.Types.Number && !Type.isInt(integer)){throw new TypeError(`typeにNumber型が指定された場合、Number型の整数値であるべきです。:${integer}:${typeof integer}`)}
+        else if (type===IntegerBase2To64.Types.BigInt && !Type.isBigInt(integer)){throw new TypeError(`typeにBigInt型が指定された場合、BigInt型であるべきです。:${integer}:${typeof integer}`)}
+        if (Type.isInt(integer)) {
+            if (0<=integer && integer<=Number.MAX_SAFE_INTEGER){return true}
+            else {throw new TypeError(`Number型整数値は0〜${Number.MAX_SAFE_INTEGER}以内であるべきです。:${integer}`)}
+        }
+        else if (Type.isBigInt(integer)){
+            if (0n<=integer){return true}//BigIntは上限値が定義されていない
+            else {throw new TypeError(`BigInt値は0n以上であるべきです。:${integer}`)}
+        }
+        else {throw new TypeError(`数はNumber型の整数値かBigInt型であるべきです。:${integer}:${typeof integer}`)}
+    }
+    static toInteger(str, base=64, type=IntegerBase2To64.Types.Auto) {
+        if (!Type.isStr(str)){throw new TypeError(`strは文字列であるべきです。:${str}:${typeof str}`)}
+             if (type===IntegerBase2To64.Types.Number){return this.#toNumber(str, base)}
+        else if (type===IntegerBase2To64.Types.BigInt) {return this.#toBigInt(str, base)}
+        else {const r = this.#toNumber(str, base); return (Number.MAX_SAFE_INTEGER < r) ? this.#toBigInt(str, base) : r; }
+    }
+    static #toNumber(str, base=64) {
+        let result = 0;
+        let rixits = str.split('');
+        for (let e = 0; e < rixits.length; e++) {
+            result = (result * base) + IntegerBase2To64.#chars.indexOf(rixits[e]);
+        }
+        return result;
+    }
+    static #toBigInt(str, base=64) {
+        let result = 0n;
+        let rixits = str.split('');
+        base = BigInt(base);
+        for (let e = 0; e < rixits.length; e++) {
+            result = (result * base) + BaseInt(IntegerBase2To64.#chars.indexOf(rixits[e]));
+        }
+        return result;
+    }
+    static toInt(str, base=64) {return this.toInteger(str, base)}
+    static toB(num, base=64) {return this.toBase(num, base)}
+    static toI(str, base=64) {return this.toInteger(str, base)}
+    static #validBase(base) {
+        if (!(Type.isInt(base) && 2<=base && base<=64)){throw new TypeError(`baseは2〜64のNumber型整数値であるべきです。:${base}:${typeof base}`)}
+        return base;
+    }
+    constructor(base=64) {
+        this._base = IntegerBase2To64.#validBase(base);
+        this._chars = IntegerBase2To64.#chars.slice(0, this._base);
+    }
+    get chars() {return this._chars}
+    get base() {return this._base}
+    toBase(num) {return IntegerBase2To64.toBase(num, this.base)}
+    toInteger(str) {return IntegerBase2To64.toInteger(str, this.base)}
+    toInt(str) {return IntegerBase2To64.toInteger(str)}
+    toB(num) {return IntegerBase2To64.toBase64(num)}
+    toI(str) {return IntegerBase2To64.toInteger(str)}
+}
+class NumberBase2To64 {// 2〜64まで
+    static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
+    static toBase(num, base=64) {
+        this.#validBase(base);
+        if (num < 0){throw new TypeError(`正数のみ有効です。:${num}`)}
+        if (Number.MAX_SAFE_INTEGER < num){throw new TypeError(`範囲超過しました。NumberBase2To64.toBase64()の引数は0〜${Number.MAX_SAFE_INTEGER}以内のNumber型であるべきです。:${num}`)};
+        let residual = num;
+        let result = '';
+        while (true) {
+            rixit = num % base;
+            result = this.#chars.charAt(rixit) + result;
+            residual = Math.floor(residual / this.base);
+            if (residual == 0){break;}
+        }
+        return result;
+
+    }
+    static toInteger(str, base=64) {
+        if (!Type.isStr(str)){throw new TypeError(`strは文字列であるべきです。:${str}:${typeof str}`)}
+        let result = 0;
+        let rixits = str.split('');
+        for (let e = 0; e < rixits.length; e++) {
+            result = (result * base) + NumberBase2To64.#chars.indexOf(rixits[e]);
+        }
+        return result;
+    }
+    static toBase(num, base=64) {return this.toBase(num, base)}
+    static toInt(str, base=64) {return this.toInteger(str, base)}
+    static toB(num, base=64) {return this.toBase(num, base)}
+    static toI(str, base=64) {return this.toInteger(str, base)}
+    static #validBase(base) {
+        if (!(Type.isInt(base) && 2<=base && base<=64)){throw new TypeError(`baseは2〜64のNumber型整数値であるべきです。:${base}:${typeof base}`)}
+        return base;
+    }
+    constructor(base=64) {
+        this._base = NumberBase2To64.#validBase(base);
+        this._chars = NumberBase2To64.#chars.slice(0, this._base);
+    }
+    get chars() {return this._chars}
+    get base() {return this._base}
+    toBase64(num) {return NumberBase2To64.toBase(num, this.base)}
+    toInteger(str) {return NumberBase2To64.toInteger(str, this.base)}
+    to64(num) {return NumberBase2To64.toBase64(num)}
+    toInt(str) {return NumberBase2To64.toInteger(str)}
+    toB(num) {return NumberBase2To64.toBase64(num)}
+    toI(str) {return NumberBase2To64.toInteger(str)}
+}
+class BigIntBase2To64 {// 2〜64まで
+    static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
+    static toBase(value, base) {
+        this.#validBase(base);
+        if (!Type.isBigInt(value)){throw new TypeError(`BigIntBase64.toBase64()の引数はBigInt型であるべきです。:${value}:${typeof value}`)}
+        if (value < 0n){throw new TypeError(`正数のみ有効です。:${value}`)}
+        let residual = value;
+        let result = '';
+        while (true) {
+            //rixit = value % this.#base;
+            rixit = value % base;
+            result = this.#chars.charAt(rixit) + result;
+            //residual = Math.floor(residual / this.#base);
+            //residual = residual / this.#base;
+            residual = residual / base;
+            if (residual == 0n){break;}
+        }
+        return result;
+    }
+    static toInteger(str, base) {
+        this.#validBase(base);
+        let result = 0n;
+        let rixits = str.split('');
+        for (let e = 0; e < rixits.length; e++) {
+            result = (result * base) + BigInt(this.#chars.indexOf(rixits[e]));
+        }
+        return result;
+    }
+    static toInt(str, base=64) {return this.toInteger(str, base)}
+    static toB(num, base=64) {return this.toBase(num, base)}
+    static toI(str, base=64) {return this.toInteger(str, base)}
+    static #validBase(base) {
+        if (!(Type.isInt(base) && 2<=base && base<=64)){throw new TypeError(`baseは2〜64のNumber型整数値であるべきです。:${base}:${typeof base}`)}
+        return base;
+    }
+    constructor(base=64) {
+        this._base = NumberBase2To64.#validBase(base);
+        this._chars = NumberBase2To64.#chars.slice(0, this._base);
+    }
+    get chars() {return this._chars}
+    get base() {return this._base}
+    toBase(bi) {return BigIntBase2To64.toBase64(bi, this._base)}
+    toInteger(str){return BigIntBase2To64.toInteger(str, this._base)}
+    toInt(str){return BigIntBase2To64.toInteger(str, this._base)}
+    toB(bi) {return BigIntBase2To64.toBase64(bi, this._base)}
+    toI(str){return BigIntBase2To64.toInteger(str, this._base)}
+}
+
+
 /*
 class TypeBase64 {
     static #chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/';
