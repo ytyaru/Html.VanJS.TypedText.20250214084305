@@ -28,10 +28,10 @@ class TypeStores {
 //    fromName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))}
 //    fromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))}
 //    fromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))}
-    getClsFomName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))?.constructor}
+    getClsFromName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))?.constructor}
     getClsFromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))?.constructor}
     getClsFromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))?.constructor}
-    getInsFomName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))}
+    getInsFromName(typeName) {return this._typeInss.find(t=>t.name.match(typeName))}
     getInsFromText(textValue) {return this._typeInss.find(t=>t.text.match(textValue))}
     getInsFromValue(typedValue) {return this._typeInss.find(t=>t.typed.match(typedValue))}
 //    getFromTypeName(typeName) {return this._types.find(t=>t.name.match(typeName))}
@@ -562,26 +562,76 @@ class Utf8Base64 {
 }
 //Utf8Base64.toBytes(base64)
 //Utf8Base64.toString(bytes)
+class Utf8Base256 {
+    static #chars = '⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿'.split('');
+    static #pattern = new RegExp(`/^[${this.#chars}]+$/`, '');
+    static toBytes(base256) {
+//        const binStr = atob(base256); // Ascii
+//        return Uint8Array.from(binStr, (m) => m.codePointAt(0)); // UTF8
+
+        if (!(Type.isStr(base256) && this.#chars.test(base256))){throw new TypeError(`引数は${Utf8Base256.#pattern}に一致する文字列であるべきです。:${base256}:${typeof base256}`)}
+//        const binStr = atob(v.lenth.slice(this.#prefix));
+        const buffer = new Uint8Array(base256.length);
+        for (let i=0; i<buffer.length; i++) {buffer[i] = base256.charCodeAt(i);}
+        return buffer;
+    }
+    static toString(bytes) {
+        const buffer = this.#getBuffer(bytes);
+        console.log(buffer)
+        //return buffer.reduce((str, buf, i)=>Utf8Base256.#chars.indexOf(buf), '')
+        return buffer.reduce((str, buf, i)=>str+Utf8Base256.#chars[buf], '')
+        //const binStr = Array.from(bytes, (byte)=>String.fromCodePoint(byte)).join("");
+//        const binStr = Array.from(buffer, (byte)=>String.fromCodePoint(byte)).join("");
+//        return btoa(binStr);
+    }
+    static #getBuffer(v) {
+        if (v instanceof ArrayBuffer) {return new Uint8Array(v)}
+        if (v instanceof Uint8Array) {return v}
+        if (v instanceof DataView) {return new Uint8Array(v.buffer)}
+//        if (v instanceof ArrayBuffer) {return v}
+//        if (v instanceof Uint8Array) {return v.buffer}
+//        if (v instanceof DataView) {return v.buffer}
+        throw new TypeError(`値はArrayBuffer,Uint8Array,DataViewであるべきです。:${v}:${typeof v}:${Object.prototype.toString.call(v,v)}`);
+    }
+}
 
 class Binary64TextValue extends TextValue {
+    static #pattern = /^base64:[0-9a-zA-Z\+\/\=]+$/;
     match(v){
         super.match(v)
-        return /^base64:[0-9a-zA-Z\+\/\=]+$/.test(v)
+        return Binary64TextValue.#pattern.test(v)
     }
     toValue(v) {// v=base64 String
-        return new ArrayBuffer(atob(v))
+        if (!(Type.isStr(v) && v.startsWith('base64:'))){throw new TypeError(`引数は${Binary64TextValue.#pattern}に一致する文字列であるべきです。:${v}:${typeof v}`)}
+        const binStr = atob(v.slice(7));
+        const buffer = new Uint8Array(binStr.length);
+        for (let i=0; i<buffer.length; i++) {buffer[i] = binStr.charCodeAt(i);}
+        return buffer;
     }
 }
 class Binary256TextValue extends TextValue {
+    //static #pattern = /^base256:[⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿]+$/;
     static #chars = '⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿'.split('');
+    static #prefix = 'base256:';
+    static #pattern = new RegExp(`^${this.#prefix}[${this.#chars}]+$`, 'u');
     // https://github.com/qntm/braille-encode/
     match(v){
         super.match(v)
         return /^base256:[⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿]+$/u.test(v)
     }
     toValue(v) {// v=base256 String
-        Binary256TextValue.#chars.indexOf()
-        return new ArrayBuffer(atob(base64))
+//        Binary256TextValue.#chars.indexOf()
+//        return new ArrayBuffer(atob(base64))
+        //if (!(Type.isStr(v) && v.startsWith('base256:'))){throw new TypeError(`引数は${Binary256TextValue.#pattern}に一致する文字列であるべきです。:${v}:${typeof v}`)}
+        if (!(Type.isStr(v) && Binary256TextValue.#pattern.test(v))){throw new TypeError(`引数は${Binary256TextValue.#pattern}に一致する文字列であるべきです。:${v}:${typeof v}`)}
+        const base256 = v.slice(Binary256TextValue.#prefix.length);
+        const buffer = new Uint8Array(base256.length);
+//        const binStr = atob(v.slice(Binary256TextValue.#prefix.length));
+//        const buffer = new Uint8Array(binStr.length);
+        //for (let i=0; i<buffer.length; i++) {buffer[i] = base256.charCodeAt(i);}
+        for (let i=0; i<buffer.length; i++) {buffer[i] = Binary256TextValue.#chars.indexOf(base256[i]);}
+        return buffer;
+
     }
 }
 
@@ -659,7 +709,8 @@ class FloatTypedValue extends NumberTypedValue {
     constructor(defaultValue=0) {super(defaultValue ?? 0);}
     match(v) {// 1で割り切れる数もFloatと判断する。この時Intとの区別が付かない！
         if (!super.match(v)){return false}
-        return Type.isFloat(v) || Type.isInt(v)
+        //return Type.isFloat(v) || Type.isInt(v)
+        return (Type.isFloat(v) || Type.isInt(v)) && !Number.isNaN(v) && Infinity!==v && -Infinity!==v
     }
 }
 class BigIntTypedValue extends BasedNumberTypedValue {
@@ -729,6 +780,22 @@ class Binary64TypedValue extends TypedValue {
 class Binary256TypedValue extends TypedValue {
     constructor(defaultValue=null) {super(defaultValue ?? new Uint8Array());}
     match(v) {return v instanceof Uint8Array || v instanceof ArrayBuffer}
+    toString(v) {
+//        const buffer = this.#getBuffer(v);
+//        if ([ArrayBuffer, Uint8Array, DataView].some(t=>v instanceof t)) {
+//            return Utf8Base64.toString(v.buffer)
+//        }
+        return 'base256:'+Utf8Base256.toString(v);
+//        return Utf8Base256.toString(v);
+    }
+    /*
+    #getBuffer(v) {
+        if (v instanceof ArrayBuffer) {return v}
+        if (v instanceof Uint8Array) {return v.buffer}
+        if (v instanceof DataView) {return v.buffer}
+        throw new TypeError(`値はArrayBuffer,Uint8Array,DataViewであるべきです。:${v}:${typeof v}:${Object.prototype.toString.call(v,v)}`);
+    }
+    */
 }
 
 class IntegerBase64 {
