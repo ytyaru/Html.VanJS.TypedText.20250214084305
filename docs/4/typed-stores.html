@@ -231,7 +231,7 @@ window.addEventListener('DOMContentLoaded', async(event) => {
         console.log(res)
         return res===TypeStores.typeCls.BlobTypeStore;
     })
-    a.t(async()=>{// BlobTextValue.toValueAsync()
+    a.t(async()=>{
         try {
             const dataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAKZJREFUWEftl+EOgCAIhPH9H9rWj5qzA2TDYMz+lXPSd0dHjYKvFnw+vQV0oj4X02j/eh4CUVLkI3B7YdR+JuO9/iHgfYD2AqeAfCb8ux1rEuA6CT0XCYz5IH0bkGxatjx7akpgMbIrAU0ytO46D8zzw8q9KwEL+romtKbpScN6BKydUK8NUQhJPzzQAxpGz6kZSmDJcy6KUZGmeWA1zzlaq/vDTXgB6It0IRvncRQAAAAASUVORK5CYIIA';
             const blobType = TypeStores.getInsFromText(dataUri);
@@ -292,7 +292,7 @@ window.addEventListener('DOMContentLoaded', async(event) => {
         try {
             const type = TypeStores.getInsFromName('bin256');
             console.log(type)
-            const base256 = type.typed.toString((new TextEncoder()).encode('日本語'));
+            const base256 = type.value.toString((new TextEncoder()).encode('日本語'));
             console.log(base256, typeof base256);
             const res = type.text.toValue(base256);
             const resTxt = (new TextDecoder()).decode(res);
