@@ -564,15 +564,17 @@ class Utf8Base64 {
 //Utf8Base64.toString(bytes)
 class Utf8Base256 {
     static #chars = '⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿'.split('');
-    static #pattern = new RegExp(`/^[${this.#chars}]+$/`, '');
+    static #pattern = new RegExp(`^[${this.#chars}]+$`, 'u');
+    static match(base256){return this.#pattern.test(base256)}
     static toBytes(base256) {
 //        const binStr = atob(base256); // Ascii
 //        return Uint8Array.from(binStr, (m) => m.codePointAt(0)); // UTF8
 
-        if (!(Type.isStr(base256) && this.#chars.test(base256))){throw new TypeError(`引数は${Utf8Base256.#pattern}に一致する文字列であるべきです。:${base256}:${typeof base256}`)}
+        if (!(Type.isStr(base256) && this.#pattern.test(base256))){throw new TypeError(`引数は${Utf8Base256.#pattern}に一致する文字列であるべきです。:${base256}:${typeof base256}`)}
 //        const binStr = atob(v.lenth.slice(this.#prefix));
         const buffer = new Uint8Array(base256.length);
-        for (let i=0; i<buffer.length; i++) {buffer[i] = base256.charCodeAt(i);}
+        //for (let i=0; i<buffer.length; i++) {buffer[i] = base256.charCodeAt(i);}
+        for (let i=0; i<buffer.length; i++) {buffer[i] = this.#chars.indexOf(base256[i]);}
         return buffer;
     }
     static toString(bytes) {
@@ -617,9 +619,14 @@ class Binary256TextValue extends TextValue {
     // https://github.com/qntm/braille-encode/
     match(v){
         super.match(v)
-        return /^base256:[⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿]+$/u.test(v)
+//        return /^base256:[⠀⢀⠠⢠⠐⢐⠰⢰⠈⢈⠨⢨⠘⢘⠸⢸⡀⣀⡠⣠⡐⣐⡰⣰⡈⣈⡨⣨⡘⣘⡸⣸⠄⢄⠤⢤⠔⢔⠴⢴⠌⢌⠬⢬⠜⢜⠼⢼⡄⣄⡤⣤⡔⣔⡴⣴⡌⣌⡬⣬⡜⣜⡼⣼⠂⢂⠢⢢⠒⢒⠲⢲⠊⢊⠪⢪⠚⢚⠺⢺⡂⣂⡢⣢⡒⣒⡲⣲⡊⣊⡪⣪⡚⣚⡺⣺⠆⢆⠦⢦⠖⢖⠶⢶⠎⢎⠮⢮⠞⢞⠾⢾⡆⣆⡦⣦⡖⣖⡶⣶⡎⣎⡮⣮⡞⣞⡾⣾⠁⢁⠡⢡⠑⢑⠱⢱⠉⢉⠩⢩⠙⢙⠹⢹⡁⣁⡡⣡⡑⣑⡱⣱⡉⣉⡩⣩⡙⣙⡹⣹⠅⢅⠥⢥⠕⢕⠵⢵⠍⢍⠭⢭⠝⢝⠽⢽⡅⣅⡥⣥⡕⣕⡵⣵⡍⣍⡭⣭⡝⣝⡽⣽⠃⢃⠣⢣⠓⢓⠳⢳⠋⢋⠫⢫⠛⢛⠻⢻⡃⣃⡣⣣⡓⣓⡳⣳⡋⣋⡫⣫⡛⣛⡻⣻⠇⢇⠧⢧⠗⢗⠷⢷⠏⢏⠯⢯⠟⢟⠿⢿⡇⣇⡧⣧⡗⣗⡷⣷⡏⣏⡯⣯⡟⣟⡿⣿]+$/u.test(v)
+        return Binary256TextValue.#pattern.test(v);
+//Utf8Base256 
     }
     toValue(v) {// v=base256 String
+        if (!(Type.isStr(v) && Binary256TextValue.#pattern.test(v))){throw new TypeError(`引数は${Binary256TextValue.#pattern}に一致する文字列であるべきです。:${v}:${typeof v}`)}
+        return Utf8Base256.toBytes(v.slice(Binary256TextValue.#prefix.length));
+        /*
 //        Binary256TextValue.#chars.indexOf()
 //        return new ArrayBuffer(atob(base64))
         //if (!(Type.isStr(v) && v.startsWith('base256:'))){throw new TypeError(`引数は${Binary256TextValue.#pattern}に一致する文字列であるべきです。:${v}:${typeof v}`)}
@@ -631,7 +638,7 @@ class Binary256TextValue extends TextValue {
         //for (let i=0; i<buffer.length; i++) {buffer[i] = base256.charCodeAt(i);}
         for (let i=0; i<buffer.length; i++) {buffer[i] = Binary256TextValue.#chars.indexOf(base256[i]);}
         return buffer;
-
+        */
     }
 }
 
